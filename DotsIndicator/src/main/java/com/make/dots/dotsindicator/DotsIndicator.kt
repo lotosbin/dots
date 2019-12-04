@@ -8,6 +8,7 @@ import android.database.DataSetObserver
 import android.support.v4.view.ViewPager
 import android.view.Gravity
 import android.annotation.TargetApi
+import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
 import android.view.View
@@ -20,18 +21,32 @@ class DotsIndicator : LinearLayout {
     private var mIndicatorBackgroundResId = R.drawable.ic_dot_darkgrey
     private var mIndicatorUnselectedBackgroundResId = R.drawable.ic_dot_lightgrey
     private var mLastPosition = -1
-
+    var mIndicatorBackgroundDrawable: Drawable? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                mInternalPageChangeListener.onPageSelected(mViewpager.currentItem)
+            }
+        }
     private val mInternalPageChangeListener = object : OnPageChangeListener {
         override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
 
         override fun onPageSelected(position: Int) {
             if (mViewpager.adapter == null || mViewpager.adapter?.count ?: 0 <= 0) return
             if (mLastPosition >= 0) getChildAt(mLastPosition)?.setBackgroundResource(mIndicatorUnselectedBackgroundResId)
-            getChildAt(position)?.setBackgroundResource(mIndicatorBackgroundResId)
+            getChildAt(position)?.doSetBackground()
             mLastPosition = position
         }
 
         override fun onPageScrollStateChanged(state: Int) {}
+    }
+
+    private fun View.doSetBackground() {
+        if (mIndicatorBackgroundDrawable != null) {
+            background = mIndicatorBackgroundDrawable
+        } else {
+            setBackgroundResource(mIndicatorBackgroundResId)
+        }
     }
 
     val dataSetObserver: DataSetObserver = object : DataSetObserver() {
@@ -117,7 +132,10 @@ class DotsIndicator : LinearLayout {
 
     private fun addIndicator(@DrawableRes backgroundDrawableId: Int) {
         val indicator = View(context)
-        indicator.setBackgroundResource(backgroundDrawableId)
+        if (backgroundDrawableId == mIndicatorBackgroundResId) {
+            indicator.doSetBackground()
+        } else
+            indicator.setBackgroundResource(backgroundDrawableId)
         addView(indicator, mIndicatorWidth, mIndicatorHeight)
         val lp = indicator.layoutParams as LinearLayout.LayoutParams
         lp.leftMargin = mIndicatorMargin
@@ -125,6 +143,7 @@ class DotsIndicator : LinearLayout {
         lp.topMargin = mIndicatorMargin
         lp.bottomMargin = mIndicatorMargin
         indicator.layoutParams = lp
+
     }
 
     fun dpTopx(dpValue: Float): Int = (dpValue * resources.displayMetrics.density + 0.5f).toInt()

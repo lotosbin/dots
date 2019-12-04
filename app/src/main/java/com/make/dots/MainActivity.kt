@@ -2,6 +2,8 @@ package com.make.dots
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
+import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v4.view.PagerAdapter
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +25,9 @@ class MainActivity : AppCompatActivity() {
 
         imageViewPager.adapter = ImagesAdapter(imagesList)
         dotsIndicator.setViewPager(imageViewPager)
+        val drawableWrap = DrawableCompat.wrap(ContextCompat.getDrawable(this, R.drawable.ic_dot_darkgrey)!!).mutate()
+        DrawableCompat.setTint(drawableWrap, ContextCompat.getColor(this, android.R.color.holo_red_light))
+        dotsIndicator.mIndicatorBackgroundDrawable = drawableWrap
         imageViewPager.adapter?.registerDataSetObserver(dotsIndicator.dataSetObserver)
     }
 
